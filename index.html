@@ -5,9 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="img/logo.png">
     <title>Craftfolio — pppwtk</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    
+    <!-- layout guide -->
+    <div class="layout-guide" id="layoutGuide">
+        <div class="container">
+            <div class="col"></div><div class="col"></div><div class="col"></div>
+            <div class="col"></div><div class="col"></div><div class="col"></div>
+            <div class="col"></div><div class="col"></div><div class="col"></div>
+            <div class="col"></div><div class="col"></div><div class="col"></div>
+        </div>
+    </div>
+
+    <div class="dev-tools">
+        <button class="dev-btn" id="toggleLayout">Toggle Grid</button>
+    </div>
+
+    <!-- hero section-->
+    <section class="hero">
+        <div class="container">
+            <img src="img/logo.png" alt="logo" class="logo">
+            <nav class="navbar">
+                <a href="#overview">overview</a>
+                <a href="#story">about</a>
+                <a href="#connect">connect</a>
+                <a href="#showcase">works</a>
+            </nav>
+            <img src="img/craftfolio.png" alt="craftfolio">
+        </div>
+    </section>
+
+    <!-- highlight-works- -->
+    <section class="works-box content-section">
+        <div class="works-container">
+            <img src="img/project/wifi-authen/Screenshot 2568-08-12 at 16.17.28.png" alt="wifi-authen">
+            <img src="img/project/word-scramble/Screenshot 2568-08-12 at 15.59.58.png" alt="word-scramble">
+            <img src="img/project/auth-system/Screenshot 2568-08-12 at 15.55.21.png" alt="auth-system">
+            <img src="img/project/store.atelien/Screenshot 2568-08-12 at 17.13.06.png" alt="store.atelien">
+            <img src="img/project/weather-app-ui-design/Screenshot 2568-08-12 at 16.55.54.png" alt="weather-app-ui-design">
+        </div>
+    </section>
+
+    <!-- about me- -->
+    <section class="about-me content-section">
+        <div class="container">
+            <h2>About Me</h2>
+            <p>I'm a passionate front-end developer with a keen eye for design and a love for creating seamless user experiences. With expertise in modern web technologies, I specialize in building responsive, accessible, and performant web applications that not only look great but also provide intuitive functionality.</p>
+            <p>My journey in web development has led me through various projects, from authentication systems and e-commerce platforms to weather applications and interactive games. Each project has taught me valuable lessons about user-centered design, clean code architecture, and the importance of continuous learning in this ever-evolving field.</p>
+        </div>
+    </section>
+
+
+    <script src="js/script.js"></script>
 </body>
 </html>
