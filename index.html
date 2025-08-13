@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <a href="#overview" class="skip-link">Skip to main content</a>
     <!-- layout guide -->
     <div class="layout-guide" id="layoutGuide">
         <div class="container">
@@ -19,15 +20,17 @@
     </div>
 
     <div class="dev-tools">
-        <button class="dev-btn" id="toggleLayout">Toggle Grid</button>
+        <button class="dev-btn" id="toggleLayout" aria-pressed="true">Toggle Grid</button>
     </div>
 
     <!-- hero section-->
-    <section class="hero">
+    <section class="hero" id="overview">
         <div class="container">
-            <img src="img/logo.png" alt="logo" class="logo">
-            <nav class="navbar">
-                <a href="#overview">overview</a>
+            <a href="index.html" class="logo-link" aria-label="Home">
+                <img src="img/logo.png" alt="logo" class="logo">
+            </a>
+            <nav class="navbar" aria-label="Primary">
+                <a href="index.html">overview</a>
                 <a href="#story">about</a>
                 <a href="#connect">connect</a>
                 <a href="#showcase">works</a>
@@ -37,7 +40,7 @@
     </section>
 
     <!-- highlight-works- -->
-    <section class="works-box content-section">
+    <section class="works-box content-section" id="showcase">
         <div class="works-container">
             <img src="img/project/wifi-authen/Screenshot 2568-08-12 at 16.17.28.png" alt="wifi-authen">
             <img src="img/project/word-scramble/Screenshot 2568-08-12 at 15.59.58.png" alt="word-scramble">
@@ -48,15 +51,59 @@
     </section>
 
     <!-- about me- -->
-    <section class="about-me content-section">
-        <div class="container">
-            <h2>About Me</h2>
-            <p>I'm a passionate front-end developer with a keen eye for design and a love for creating seamless user experiences. With expertise in modern web technologies, I specialize in building responsive, accessible, and performant web applications that not only look great but also provide intuitive functionality.</p>
-            <p>My journey in web development has led me through various projects, from authentication systems and e-commerce platforms to weather applications and interactive games. Each project has taught me valuable lessons about user-centered design, clean code architecture, and the importance of continuous learning in this ever-evolving field.</p>
+    <section class="about-me content-section" id="story">
+        <div class="about-container">
+            <div class="lists-two-col">
+                <p>I believe in a minimal and essential approach, focusing on finding a balance between form, function,
+                    and meaning. This is achieved by paying close attention to details and carefully researching materials.
+                    I design websites with a unique style and aesthetic, expressed through simple forms and clear expression
+                    of ideas, always placing user experience and communication at the heart of the development process.
+                </p>
+            </div>
+            <img src="img/pppwtk.jpeg" alt="Wuttikan Suksan">
+            <h1>about</h1>
+            <div class="lists-two-col">
+                <p>Hello, I'm Wuttikan. currently a student in the DII program at Chiang Mai University.
+                    I am passionate about web design and development, dedicated to creating work that is clean, original, 
+                    and visually engaging, with a strong focus on delivering an intuitive and seamless user experience.
+                </p>
+            </div>
+                <div class="lists-two-col">
+                <div class="col">
+                    <h2>what i love</h2>
+                    <ul>
+                        <li>Minimal & Swiss-style Web Design</li>
+                        <li>Feature Implementation</li>
+                        <li>Frontend Development </li>
+                        <li>Full Solo Projects</li>
+                        <li>Creative Coding</li>
+                        <li>UI/UX Design</li>
+                    </ul>
+                </div>
+                <div class="col">
+                    <h2>languages</h2>
+                    <ul>
+                        <li>Northern Thai dialect</li>
+                        <li>English</li>
+                        <li>Thai</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </section>
 
 
     <script src="js/script.js"></script>
+    <!-- Preloader Overlay -->
+    <div class="preloader" id="preloader" aria-hidden="true">
+        <div class="curtain curtain-top"></div>
+        <div class="curtain curtain-bottom"></div>
+        <div class="logo">
+            <img src="img/logo-white.png" alt="Logo">
+        </div>
+    </div>
+
+    <script src="js/preload.js"></script>
+    <!-- End Preloader Overlay -->
 </body>
 </html>
