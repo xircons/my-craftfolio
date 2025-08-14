@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const connectSection = document.querySelector('.connect');
     let aboutLabelEl = null;
     const rootFontSizePx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    const enableLogoHover = false; // disable logo hover swap/overlay
 
     function ensureAboutLabel() {
         if (!aboutLabelEl) {
@@ -37,15 +38,33 @@ document.addEventListener('DOMContentLoaded', function() {
             position: 'fixed',
             top: '0',
             right: '0',
-            zIndex: '10002'
+            zIndex: '2147483647'
         });
     }
     
+    // Lift the logo out of the hero stacking context so it can sit above sections
+    if (heroLogoLink && heroLogo) {
+        if (heroLogoLink.parentElement && heroLogoLink.parentElement !== document.body) {
+            document.body.appendChild(heroLogoLink);
+        }
+        Object.assign(heroLogo.style, {
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            paddingLeft: '3.75rem',
+            paddingTop: '1.25rem',
+            width: '5.625rem',
+            height: 'auto',
+            boxSizing: 'border-box',
+            zIndex: '2147483646'
+        });
+    }
+
     // ===== LAYOUT GUIDE TOGGLE =====
     if (toggleLayoutBtn && layoutGuide) {
         // Initialize based on computed visibility (hidden by default via CSS)
         const isVisible = getComputedStyle(layoutGuide).display !== 'none';
-        toggleLayoutBtn.textContent = isVisible ? 'Hide Grid' : 'Show Grid';
+        toggleLayoutBtn.textContent = isVisible ? 'hide grid' : 'show grid';
         toggleLayoutBtn.setAttribute('aria-pressed', String(isVisible));
         toggleLayoutBtn.setAttribute('aria-label', 'Toggle layout grid overlay');
 
@@ -53,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const currentlyVisible = getComputedStyle(layoutGuide).display !== 'none';
             const willShow = !currentlyVisible;
             layoutGuide.style.display = willShow ? 'block' : 'none';
-            this.textContent = willShow ? 'Hide Grid' : 'Show Grid';
+            this.textContent = willShow ? 'hide grid' : 'show grid';
             this.setAttribute('aria-pressed', String(willShow));
         });
     }
@@ -281,8 +300,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial comprehensive debug
     logScrollDebug('SCROLL DEBUG (init)');
 
-    // ===== HERO LOGO HOVER SWAP (keep exact position/size) =====
-    if (heroLogo) {
+    // ===== HERO LOGO HOVER SWAP (disabled) =====
+    if (enableLogoHover && heroLogo) {
         const defaultLogoSrc = heroLogo.getAttribute('src');
         const hoverLogoSrc = 'img/logo-white.png';
         const overlayOffsetLeftPx = 25; // desired margin-left for bg
@@ -415,5 +434,291 @@ document.addEventListener('DOMContentLoaded', function() {
         // Smooth auto update every second
         setInterval(setFromOffset, 1000);
     })();
+
+    // ===== CONNECT: info > info-group left-to-right reveal (with reverse order) =====
+    (function revealConnectInfo() {
+        const container = document.querySelector('.connect .info');
+        if (!container) return;
+
+        // Track scroll direction shared from outer scope
+        let lastScrollY = window.scrollY;
+        let isScrollingDown = true;
+        window.addEventListener('scroll', () => {
+            const y = window.scrollY;
+            isScrollingDown = y > lastScrollY;
+            lastScrollY = y;
+        }, { passive: true });
+
+        const groups = container.querySelectorAll('.info-group');
+        if (!groups.length) return;
+
+        // Mark children of each group as reveal lines
+        groups.forEach(group => {
+            const children = group.querySelectorAll(':scope > *');
+            children.forEach(el => el.classList.add('reveal-line'));
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                const el = entry.target;
+                const group = el.closest('.info-group') || container;
+                const siblings = Array.from(group.querySelectorAll(':scope > .reveal-line'));
+                const index = Math.max(0, siblings.indexOf(el));
+                const total = Math.max(1, siblings.length);
+                const forwardIdx = index;
+                const reverseIdx = (total - 1 - index);
+                const chosenIdx = isScrollingDown ? forwardIdx : reverseIdx;
+                const delayMs = Math.min(800, 90 * chosenIdx);
+                el.style.transitionDelay = delayMs + 'ms';
+
+                if (entry.isIntersecting) {
+                    el.classList.add('is-visible');
+                } else {
+                    el.classList.remove('is-visible');
+                }
+            });
+        }, { root: null, threshold: 0.1 });
+
+        container.querySelectorAll('.info-group > *').forEach(el => observer.observe(el));
+    })();
+
+    // ===== CONNECT: form field > label left-to-right reveal (with reverse order) =====
+    (function revealConnectFormLabels() {
+        const form = document.querySelector('.connect .form');
+        if (!form) return;
+
+        // Track scroll direction
+        let lastScrollY = window.scrollY;
+        let isScrollingDown = true;
+        window.addEventListener('scroll', () => {
+            const y = window.scrollY;
+            isScrollingDown = y > lastScrollY;
+            lastScrollY = y;
+        }, { passive: true });
+
+        const labels = Array.from(form.querySelectorAll('.field > label'));
+        if (!labels.length) return;
+
+        labels.forEach(el => el.classList.add('reveal-line'));
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                const el = entry.target;
+                const siblings = labels; // stagger across all labels in the form
+                const index = Math.max(0, siblings.indexOf(el));
+                const total = Math.max(1, siblings.length);
+                const forwardIdx = index;
+                const reverseIdx = (total - 1 - index);
+                const chosenIdx = isScrollingDown ? forwardIdx : reverseIdx;
+                const delayMs = Math.min(900, 80 * chosenIdx);
+                el.style.transitionDelay = delayMs + 'ms';
+
+                if (entry.isIntersecting) {
+                    el.classList.add('is-visible');
+                } else {
+                    el.classList.remove('is-visible');
+                }
+            });
+        }, { root: null, threshold: 0.1 });
+
+        labels.forEach(el => observer.observe(el));
+    })();
+
+    // ===== WORKS: link items to GitHub repos =====
+    (function linkWorksToGithub() {
+        const username = 'xircons';
+        document.querySelectorAll('.works-container .work-item[data-repo]').forEach((item) => {
+            const repo = item.getAttribute('data-repo');
+            if (!repo) return;
+            const url = `https://github.com/${username}/${repo}`;
+            item.setAttribute('href', url);
+            item.setAttribute('target', '_blank');
+            item.setAttribute('rel', 'noopener noreferrer');
+        });
+    })();
+
+    // ===== Custom Cursor =====
+    class CustomCursor {
+        constructor(options = {}) {
+            this.cursor = document.getElementById('customCursor');
+            if (!this.cursor) return;
+
+            this.ease = typeof options.ease === 'number' ? options.ease : 0.2; // 0..1
+            this.isDown = false;
+            this.isHover = false;
+            this.isVisible = false;
+
+            this.targetX = window.innerWidth / 2;
+            this.targetY = window.innerHeight / 2;
+            this.currentX = this.targetX;
+            this.currentY = this.targetY;
+
+            this.rafId = null;
+
+            this.onMouseMove = this.onMouseMove.bind(this);
+            this.onMouseOver = this.onMouseOver.bind(this);
+            this.onMouseOut = this.onMouseOut.bind(this);
+            this.onMouseDown = this.onMouseDown.bind(this);
+            this.onMouseUp = this.onMouseUp.bind(this);
+            this.onWindowBlur = this.onWindowBlur.bind(this);
+            this.onWindowFocus = this.onWindowFocus.bind(this);
+            this.animate = this.animate.bind(this);
+
+            this.addEvents();
+            this.start();
+        }
+
+        addEvents() {
+            document.addEventListener('mousemove', this.onMouseMove, { passive: true });
+            document.addEventListener('mouseover', this.onMouseOver, { passive: true });
+            document.addEventListener('mouseout', this.onMouseOut, { passive: true });
+            document.addEventListener('mousedown', this.onMouseDown, { passive: true });
+            document.addEventListener('mouseup', this.onMouseUp, { passive: true });
+            document.addEventListener('mouseleave', this.onWindowBlur, { passive: true });
+            window.addEventListener('blur', this.onWindowBlur, { passive: true });
+            window.addEventListener('focus', this.onWindowFocus, { passive: true });
+        }
+
+        removeEvents() {
+            document.removeEventListener('mousemove', this.onMouseMove);
+            document.removeEventListener('mouseover', this.onMouseOver);
+            document.removeEventListener('mouseout', this.onMouseOut);
+            document.removeEventListener('mousedown', this.onMouseDown);
+            document.removeEventListener('mouseup', this.onMouseUp);
+            document.removeEventListener('mouseleave', this.onWindowBlur);
+            window.removeEventListener('blur', this.onWindowBlur);
+            window.removeEventListener('focus', this.onWindowFocus);
+        }
+
+        start() { if (!this.rafId) this.rafId = requestAnimationFrame(this.animate); }
+        stop() { if (this.rafId) { cancelAnimationFrame(this.rafId); this.rafId = null; } }
+
+        onMouseMove(e) {
+            this.targetX = e.clientX;
+            this.targetY = e.clientY;
+            if (!this.isVisible) {
+                this.isVisible = true;
+                this.cursor.classList.add('is-visible');
+                this.cursor.classList.remove('is-hidden');
+            }
+            this.setHover(this.isElementInteractive(e.target));
+        }
+
+        onMouseOver(e) { this.setHover(this.isElementInteractive(e.target)); }
+        onMouseOut(e) { const toEl = e.relatedTarget; this.setHover(this.isElementInteractive(toEl)); }
+        onMouseDown() { this.isDown = true; this.cursor.classList.add('is-down'); }
+        onMouseUp() { this.isDown = false; this.cursor.classList.remove('is-down'); }
+        onWindowBlur() {
+            this.isDown = false;
+            this.cursor.classList.remove('is-down');
+            this.isVisible = false;
+            this.cursor.classList.remove('is-hover', 'is-visible');
+            this.cursor.classList.add('is-hidden');
+        }
+        onWindowFocus() { /* wait for mousemove */ }
+
+        setHover(state) {
+            if (state === this.isHover) return;
+            this.isHover = state;
+            if (this.isHover) this.cursor.classList.add('is-hover');
+            else this.cursor.classList.remove('is-hover');
+        }
+
+        isElementInteractive(el) {
+            if (!el || el.nodeType !== 1) return false;
+            let node = el, depth = 0;
+            while (node && node !== document.body && depth < 6) {
+                if (this.matchesInteractive(node)) return true;
+                node = node.parentElement; depth += 1;
+            }
+            return false;
+        }
+
+        matchesInteractive(node) {
+            const interactiveSelector = [
+                'a','button','label','select','input','textarea',
+                '[role="button"]','[role="link"]',
+                '.interactive-element','.link','.special-hover','[data-interactive="true"]'
+            ].join(',');
+            if (node.matches(interactiveSelector)) return true;
+            const cs = window.getComputedStyle(node);
+            if (cs.cursor === 'pointer') return true;
+            if (typeof node.onclick === 'function') return true;
+            if (node.hasAttribute && (node.hasAttribute('onclick') || node.hasAttribute('tabindex'))) return true;
+            return false;
+        }
+
+        animate() {
+            const dx = this.targetX - this.currentX;
+            const dy = this.targetY - this.currentY;
+            this.currentX += dx * this.ease;
+            this.currentY += dy * this.ease;
+            const size = this.cursor.offsetWidth || parseFloat(getComputedStyle(this.cursor).width) || 12;
+            const half = size / 2;
+            this.cursor.style.transform = `translate3d(${(this.currentX - half).toFixed(2)}px, ${(this.currentY - half).toFixed(2)}px, 0)`;
+            this.rafId = requestAnimationFrame(this.animate);
+        }
+
+        destroy() { this.stop(); this.removeEvents(); this.cursor?.parentNode?.removeChild(this.cursor); }
+    }
+
+    // Initialize
+    new CustomCursor();
+
+    // ===== ABOUT-ME: staggered left-to-right line reveal =====
+    (function revealAboutLines() {
+        const aboutSection = document.querySelector('.about-me');
+        if (!aboutSection) return;
+
+        // Track scroll direction
+        let lastScrollY = window.scrollY;
+        let isScrollingDown = true;
+        window.addEventListener('scroll', () => {
+            const y = window.scrollY;
+            isScrollingDown = y > lastScrollY;
+            lastScrollY = y;
+        }, { passive: true });
+
+        // Select textual lines to animate
+        const candidates = aboutSection.querySelectorAll(
+            '.about-container > p, .about-container h1, .lists-two-col h2, .lists-two-col li, .lists-two-col p'
+        );
+        if (!candidates.length) return;
+
+        // Add base class
+        candidates.forEach((el) => el.classList.add('reveal-line'));
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                const el = entry.target;
+                const parent = el.closest('.lists-two-col') || aboutSection;
+                // Stagger: index among siblings inside same block
+                const siblings = Array.from(parent.querySelectorAll('.reveal-line'));
+                const index = Math.max(0, siblings.indexOf(el));
+                const total = Math.max(1, siblings.length);
+                const forwardIdx = index;
+                const reverseIdx = (total - 1 - index);
+                const chosenIdx = isScrollingDown ? forwardIdx : reverseIdx;
+
+                // Extra delay controls
+                const dataReverseExtra = parseInt(el.getAttribute('data-reverse-extra') || '0', 10);
+                const dataExtra = parseInt(el.getAttribute('data-extra') || '0', 10);
+                const extraMs = isScrollingDown ? dataExtra : (dataReverseExtra > 0 ? dataReverseExtra : dataExtra);
+
+                const delayMs = Math.min(3000, 80 * chosenIdx + extraMs);
+                el.style.transitionDelay = delayMs + 'ms';
+
+                if (entry.isIntersecting) {
+                    el.classList.add('is-visible');
+                } else {
+                    el.classList.remove('is-visible');
+                }
+            });
+        }, { root: null, threshold: 0.15 });
+
+        candidates.forEach((el) => observer.observe(el));
+    })();
+
+    // contact form submission moved to js/contact.js
 
 });

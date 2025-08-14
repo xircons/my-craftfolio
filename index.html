@@ -23,7 +23,7 @@
     </div>
 
     <div class="dev-tools">
-        <button class="dev-btn" id="toggleLayout" aria-pressed="false">Show Grid</button>
+        <button class="dev-btn" id="toggleLayout" aria-pressed="false">show grid</button>
     </div>
 
     <!-- hero section-->
@@ -44,11 +44,26 @@
     <!-- highlight-works- -->
     <section class="works-box content-section" id="showcase">
         <div class="works-container">
-            <img src="img/project/wifi-authen/Screenshot 2568-08-12 at 16.17.28.png" alt="wifi-authen">
-            <img src="img/project/word-scramble/Screenshot 2568-08-12 at 15.59.58.png" alt="word-scramble">
-            <img src="img/project/auth-system/Screenshot 2568-08-12 at 15.55.21.png" alt="auth-system">
-            <img src="img/project/store.atelien/Screenshot 2568-08-12 at 17.13.06.png" alt="store.atelien">
-            <img src="img/project/weather-app-ui-design/Screenshot 2568-08-12 at 16.55.54.png" alt="weather-app-ui-design">
+            <a class="work-item" href="https://github.com/xircons/wifi-authenticator" data-repo="wifi-authenticator" aria-label="Open repo wifi-authen">
+                <img src="img/project/wifi-authen/1.png" alt="wifi-authen">
+                <span class="work-title">wifi authenticator</span>
+            </a>
+            <a class="work-item" href="https://github.com/xircons/word-scramble" data-repo="word-scramble" aria-label="Open repo word-scramble">
+                <img src="img/project/word-scramble/Screenshot 2568-08-12 at 15.59.58.png" alt="word-scramble">
+                <span class="work-title">word scramble</span>
+            </a>
+            <a class="work-item" href="https://github.com/xircons/auth-system" data-repo="auth-system" aria-label="Open repo auth-system">
+                <img src="img/project/auth-system/Screenshot 2568-08-12 at 15.55.21.png" alt="auth-system">
+                <span class="work-title">auth system</span>
+            </a>
+            <a class="work-item" href="https://github.com/xircons/store.atelien" data-repo="store.atelien" aria-label="Open repo store.atelien">
+                <img src="img/project/store.atelien/Screenshot 2568-08-12 at 17.13.06.png" alt="store.atelien">
+                <span class="work-title">store.atelien</span>
+            </a>
+            <a class="work-item" href="https://www.figma.com/design/Pkh8N2gg6b2VS3jsOuAxTP/weather-app?node-id=0-1&t=0CWEnVKrXBMnsZMC-1" aria-label="Open repo weather-app-ui-design">
+                <img src="img/project/weather-app-ui-design/Screenshot 2568-08-12 at 16.55.54.png" alt="weather-app-ui-design">
+                <span class="work-title">weather app ui design</span>
+            </a>
         </div>
     </section>
 
@@ -56,7 +71,7 @@
     <section class="about-me content-section" id="story">
         <div class="about-container">
             <div class="lists-two-col">
-                <p>I believe in a minimal and essential approach, focusing on finding a balance between form, function,
+                <p data-extra="150">I believe in a minimal and essential approach, focusing on finding a balance between form, function,
                     and meaning. This is achieved by paying close attention to details and carefully researching materials.
                     I design websites with a unique style and aesthetic, expressed through simple forms and clear expression
                     of ideas, always placing user experience and communication at the heart of the development process.
@@ -65,7 +80,7 @@
             <img src="img/pppwtk.jpeg" alt="Wuttikan Suksan">
             <h1>about</h1>
             <div class="lists-two-col">
-                <p>Hello, I'm Wuttikan. currently a student in the DII program at Chiang Mai University.
+                <p data-reverse-extra="800">Hello, I'm Wuttikan. currently a student in the DII program at Chiang Mai University.
                     I am passionate about web design and development, dedicated to creating work that is clean, original, 
                     and visually engaging, with a strong focus on delivering an intuitive and seamless user experience.
                 </p>
@@ -122,19 +137,19 @@
                         <form action="#" method="post" novalidate>
                         <div class="field">
                             <label for="name">Name</label>
-                            <input id="name" name="name" type="text" placeholder="Wuttikan Suksan" autocomplete="name">
+                            <input id="name" name="name" type="text" placeholder="Wuttikan Suksan" autocomplete="name" required>
                         </div>
                         <div class="field">
                             <label for="email">Email</label>
-                            <input id="email" name="email" type="email" placeholder="hello@example.com" autocomplete="email">
+                            <input id="email" name="email" type="email" placeholder="hello@example.com" autocomplete="email" required>
                         </div>
                         <div class="field">
                             <label for="company">I work at</label>
-                            <input id="company" name="company" type="text" placeholder="Company name" autocomplete="organization">
+                            <input id="company" name="company" type="text" placeholder="Company name" autocomplete="organization" required>
                         </div>
                         <div class="field">
                             <label for="message">Details about the project</label>
-                            <textarea id="message" name="message" rows="4" placeholder="My project is about..."></textarea>
+                            <textarea id="message" name="message" rows="4" placeholder="Hello, I'm Wuttikan, can u help me..." required></textarea>
                         </div>
                         <div class="actions">
                             <button type="submit">Send</button>
@@ -155,6 +170,7 @@
 
 
     <script src="js/script.js"></script>
+    <script src="js/contact.js"></script>
     <!-- Preloader Overlay -->
     <div class="preloader" id="preloader" aria-hidden="true">
         <div class="curtain curtain-top"></div>
@@ -166,5 +182,8 @@
 
     <script src="js/preload.js"></script>
     <!-- End Preloader Overlay -->
+    
+    <!-- Custom Cursor -->
+    <div id="customCursor" aria-hidden="true"></div>
 </body>
 </html>
