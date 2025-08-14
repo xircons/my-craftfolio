@@ -25,15 +25,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // ===== LAYOUT GUIDE TOGGLE =====
     if (toggleLayoutBtn && layoutGuide) {
-        // Show layout guide by default
-        layoutGuide.style.display = 'block';
-        toggleLayoutBtn.textContent = 'Hide Grid';
-        toggleLayoutBtn.setAttribute('aria-pressed', 'true');
+        // Initialize based on computed visibility (hidden by default via CSS)
+        const isVisible = getComputedStyle(layoutGuide).display !== 'none';
+        toggleLayoutBtn.textContent = isVisible ? 'Hide Grid' : 'Show Grid';
+        toggleLayoutBtn.setAttribute('aria-pressed', String(isVisible));
         toggleLayoutBtn.setAttribute('aria-label', 'Toggle layout grid overlay');
-        
+
         toggleLayoutBtn.addEventListener('click', function() {
-            const isVisible = layoutGuide.style.display !== 'none';
-            const willShow = isVisible ? false : true;
+            const currentlyVisible = getComputedStyle(layoutGuide).display !== 'none';
+            const willShow = !currentlyVisible;
             layoutGuide.style.display = willShow ? 'block' : 'none';
             this.textContent = willShow ? 'Hide Grid' : 'Show Grid';
             this.setAttribute('aria-pressed', String(willShow));
