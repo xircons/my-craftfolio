@@ -8,7 +8,7 @@
 
 :root {
     /* Colors */
-    --color-bg: #ffffff;
+    --color-bg: #202329;
     --color-text: #121212;
     --color-text-muted: #666666;
     --color-accent: #121212;
@@ -38,6 +38,7 @@
     /* Grid (overlay + alignment) */
     --grid-cols: 12;
     --grid-gutter: 1.25rem;
+    --underline-anim-ms: 1200ms;
 }
 
 html {
@@ -48,6 +49,7 @@ html {
     padding: 0;
     overscroll-behavior-y: none; /* prevent rubber-band at document edges */
     overflow-x: hidden;
+    background-color: var(--color-bg); /* ensure dark root background */
 }
 
 body {
@@ -141,6 +143,7 @@ body {
     z-index: 50; /* Keep below higher sections like connect */
     margin: 0;
     padding: 0;
+    background-color: transparent; /* let root dark background show */
 }
 
 .hero .container {
@@ -230,13 +233,13 @@ body {
 }
 
 .navbar {
-    position: absolute;
+    position: fixed;
     top: 0;
     right: 0;
     padding: 1.25rem 3.625rem 0 0;
     display: flex;
     gap: 1.875rem; /* 30px */
-    z-index: 101; /* Above content sections */
+    z-index: 10002; /* Above content sections and overlays */
 }
 
 .navbar a {
@@ -281,15 +284,17 @@ body {
     transform: translateY(0);
 }
 
-.content-section:last-child {
-    height: auto; /* Let content determine natural height */
-    margin-bottom: 0;
-    min-height: auto; /* Remove forced 100vh constraint */
-}
+.content-section:last-child { height: auto; margin-bottom: 0; min-height: auto; }
 
 /* Reduce spacing only between about (story) and connect to 50vh */
 .about-me.content-section { margin-top: 100vh; }
-.connect.content-section { margin-top: 10vh; }
+.connect.content-section { margin-top: clamp(4rem, 6vw, 6rem); }
+
+/* Do not animate the connect section down; sit flush to previous section */
+.connect.content-section {
+    transform: translateY(0);
+    transition: none;
+}
 
 /* Works section styles */
 .works-box {
@@ -299,6 +304,7 @@ body {
     padding: var(--space-300) var(--space-200) var(--space-100) var(--space-200);
     position: relative; /* allow z-index */
     z-index: 200; /* above hero craftfolio image */
+    background-color: #ffffff; /* works section on white */
 }
 
 .works-container {
@@ -459,7 +465,7 @@ body {
 
 /* About Me section styles */
 .about-me {
-    background-color: var(--color-bg);
+    background-color: #ffffff; /* about section on white */
     display: flex;
     justify-content: center;
     align-items: flex-start; /* Changed from center to flex-start for better alignment */
@@ -689,11 +695,13 @@ body.no-bottom-space-debug .connect * {
 .connect {
     background: #202329;
     color: #e5e6e8;
-    padding: 6rem 2rem 8rem 2rem;
+    padding: 6rem 2rem 10rem 2rem; /* tighter bottom padding to avoid excess dark area */
     position: relative;
-    z-index: 200; /* ensure above fixed hero craftfolio image */
-    min-height: calc(100vh - env(safe-area-inset-bottom, 0px)); /* fill to bottom on all devices */
+    z-index: 200; /* above about-label (60) so connect.png covers it */
+    min-height: auto; /* let content define height */
     box-sizing: border-box;
+    overflow: hidden; /* prevent oversized children from sliding outside */
+    margin-bottom: 0; /* no extra gap after section */
 }
 
 .connect .connect-container {
@@ -715,7 +723,10 @@ body.no-bottom-space-debug .connect * {
         gap: 6rem; /* row gap */
         column-gap: var(--grid-gutter); /* column gap matches grid */
     }
-    .connect .info { grid-column: 1 / 7; }
+    .connect .info {
+        grid-column: 1 / 7;
+        margin-left: calc(-1.1 * var(--grid-gutter)); /* push further right */
+    }
     .connect .form {
         grid-column: 8 / 13;
         margin-left: calc(0.1 * var(--grid-gutter)); /* push further right */
@@ -724,42 +735,60 @@ body.no-bottom-space-debug .connect * {
 }
 
 .connect .info h4 {
-    font-family: var(--ff-mono);
-    color: #aeb1b6;
-    font-weight: var(--fw-400);
-    margin-bottom: .5rem;
-    letter-spacing: -0.04rem;
+    font-family: var(--ff-sans);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: var(--fw-500);
+    margin-bottom: 0.5rem;
+    letter-spacing: -1px;
 }
 
 .connect .info p, .connect .info a {
     font-family: var(--ff-mono);
-    color: #e5e6e8;
+    color: #aeb1b6;
     text-decoration: none;
 }
 
 .connect .info .info-group { margin-bottom: 2rem; }
 .connect .info .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
 
-.connect .form .lead {
-    font-size: 1.125rem;
-    color: #cfd2d6;
-    line-height: 1.7;
-    margin-bottom: 2rem;
-}
-
 .connect form { width: 100%; }
 .connect .field { display: flex; flex-direction: column; margin-bottom: 1.25rem; }
-.connect label { font-family: var(--ff-mono); color: #aeb1b6; font-size: .9rem; margin-bottom: .5rem; }
+.connect label { font-family: var(--ff-sans); color: #fff; font-size: 0.9rem; margin-bottom: .5rem;  font-size: 0.9rem; font-weight: var(--fw-500); letter-spacing: -0.5px; }
 .connect input, .connect textarea {
     background: transparent;
     border: none;
     border-bottom: 1px solid #4a4f57;
-    color: #e5e6e8;
+    color: #aeb1b6;
     padding: .75rem 0;
     font-size: 1rem;
+    line-height: 1.6;
     outline: none;
+    /* underline animation setup */
+    background-image: linear-gradient(to right, #fff, #fff);
+    background-repeat: no-repeat;
+    background-position: left bottom;
+    background-size: 0% 1px;
+    transition: background-size var(--underline-anim-ms, 1200ms) cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-.connect input::placeholder, .connect textarea::placeholder { color: #7e848d; }
+/* Keep textarea height stable regardless of font swap/placeholder */
+.connect textarea {
+    line-height: 1.6;
+    min-height: calc(4 * 1.6em);
+}
+/* On focus: make underline white */
+.connect input:focus,
+.connect textarea:focus {
+    border-bottom-color: transparent;
+    background-size: 100% 1px;
+}
+
+/* When there is content: switch font to mono */
+.connect input:not(:placeholder-shown),
+.connect textarea:not(:placeholder-shown) {
+    font-family: var(--ff-mono);
+}
+.connect input::placeholder, .connect textarea::placeholder { font-family: var(--ff-mono); font-size: 1rem; color: #aeb1b6; }
 
 /* Disable resize for all textareas */
 textarea { resize: none; }
@@ -769,21 +798,24 @@ textarea { resize: none; }
     width: 100%;
     background: transparent;
     border: 1px solid #4a4f57;
-    color: #e5e6e8;
+    color: #fff;
     padding: 1rem 1.25rem;
     cursor: pointer;
     transition: background .3s ease, color .3s ease;
+    font-family: var(--ff-sans);
+    font-weight: var(--fw-500);
+    font-size: 0.875rem;
 }
-.connect button:hover { background: #2a2f36; }
+.connect button:hover {background: #fff; color: #4a4f57; border: 1px solid #fff;}
 
-.connect .social { display: flex; gap: 1.5rem; margin-top: 1rem; }
+.connect .social { display: flex; gap: 1.5rem; margin-top: 1.5rem; margin-bottom: 0; font-size: 0.9rem;}
 .connect .social a { color: #aeb1b6; text-decoration: none; font-family: var(--ff-mono); }
 .connect .social a:hover { color: #e5e6e8; }
 
 .contact-title {
     position: absolute;
     left: 0;
-    bottom: -2rem;
+    bottom: -2rem; /* subtle overlap to avoid thin gap at section edge */
     font-size: clamp(4rem, 16vw, 12rem);
     font-weight: 800;
     letter-spacing: -0.1rem;
@@ -797,8 +829,7 @@ textarea { resize: none; }
     position: absolute;
     left: 0;
     bottom: 0;
-    padding-left: 3.625rem; /* 58px */
-    padding-bottom: 1.25rem; /* 20px */
+    padding-bottom: 0;
     width: 49.5%;
     max-width: 100%;
     height: auto;
@@ -808,14 +839,19 @@ textarea { resize: none; }
     opacity: 1; /* fully visible for image */
     pointer-events: none;
     z-index: 201; /* above connect content */
+    will-change: transform;
 }
+
+/* Emergency spacing guard: zero any trailing margins inside connect */
+.connect * { margin-bottom: 0; padding-bottom: 0; }
 
 @media (min-width: var(--bp-lg)) {
     /* Span columns 1–8 in a 12-col grid (8 cols + 7 gutters) */
     .connect .contact-title {
         width: calc(
-            7 * ((100% - (var(--grid-cols) - 1) * var(--grid-gutter)) / var(--grid-cols))
-            + 7 * var(--grid-gutter)
+            6 * ((100% - (var(--grid-cols) - 1) * var(--grid-gutter)) / var(--grid-cols))
+            + 6 * var(--grid-gutter)
         );
+        margin-left: calc(-1.1 * var(--grid-gutter));
     }
 }

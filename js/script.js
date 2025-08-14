@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const heroContainer = document.querySelector('.hero .container');
     const heroLogo = document.querySelector('.hero .logo');
     const heroLogoLink = document.querySelector('.hero .logo-link');
+    const navbar = document.querySelector('.navbar');
     const worksSection = document.querySelector('.works-box');
     const connectSection = document.querySelector('.connect');
     let aboutLabelEl = null;
@@ -22,7 +23,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return aboutLabelEl;
     }
-    const contentSections = document.querySelectorAll('.content-section');
+    // Exclude connect from scroll-reveal animations so it sits flush, no offset
+    const contentSections = document.querySelectorAll('.content-section:not(.connect)');
+
+    // Ensure navbar is always clickable above content by lifting it to body
+    if (navbar) {
+        // Move out of .hero stacking context
+        if (navbar.parentElement && navbar.parentElement !== document.body) {
+            document.body.appendChild(navbar);
+        }
+        // Fix to viewport with high z-index
+        Object.assign(navbar.style, {
+            position: 'fixed',
+            top: '0',
+            right: '0',
+            zIndex: '10002'
+        });
+    }
     
     // ===== LAYOUT GUIDE TOGGLE =====
     if (toggleLayoutBtn && layoutGuide) {
@@ -139,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Swap to ABOUT label only AFTER the entire works section has passed
+        // Show ABOUT label after works; keep it for the rest of the page
         if (worksSection) {
             const rect = worksSection.getBoundingClientRect();
             const hasPassed = rect.bottom <= 0; // section completely above viewport
@@ -156,41 +173,27 @@ document.addEventListener('DOMContentLoaded', function() {
         // Ensure connect title image does not flash by forcing GPU compositing when near viewport
         const connectTitle = document.getElementById('contactTitle');
         if (connectTitle) {
-            const connectRect = connectTitle.getBoundingClientRect();
-            const nearViewport = connectRect.top < windowHeight * 1.2; // start prepping slightly before
-            if (nearViewport) {
-                // Hint: promote to its own layer to avoid flicker
-                connectTitle.style.willChange = 'transform, opacity';
-                connectTitle.style.transform = 'translateZ(0)';
+            const rect = connectTitle.getBoundingClientRect();
+            // Clamp the image inside its container horizontally
+            const container = connectSection ? connectSection.querySelector('.connect-container') : null;
+            if (container) {
+                const cRect = container.getBoundingClientRect();
+                const overflowRight = rect.right - cRect.right;
+                const overflowBottom = rect.bottom - cRect.bottom;
+                let tx = 0, ty = 0;
+                if (overflowRight > 0) tx = -overflowRight;
+                if (overflowBottom > 0) ty = -overflowBottom;
+                connectTitle.style.transform = `translate(${Math.round(tx)}px, ${Math.round(ty)}px)`;
             }
         }
 
-        // Hard-limit scroll to bottom of document to avoid overscrolling blank space
-        // Compute the maximum scroll position on each frame
-        // Prefer .connect bottom; fallback to brute-force total bottom
-        let contentBottomPx = (() => {
-            if (connectSection) {
-                const rect = connectSection.getBoundingClientRect();
-                return window.scrollY + rect.bottom;
-            }
-            return document.documentElement.scrollHeight;
-        })();
-        // Cross-check with deep measurement (excluding fixed) and take the larger
-        const deepBottom = getDeepContentBottomPx();
-        contentBottomPx = Math.max(contentBottomPx, deepBottom);
-        const maxScroll = Math.max(0, Math.floor(contentBottomPx - windowHeight));
-        isAtBottom = scrollY >= maxScroll;
-        if (scrollY > maxScroll) {
-            window.scrollTo({ top: maxScroll, behavior: 'auto' });
-        }
-        // Aggressive lock: if at bottom, stop further downward scroll by disabling overflow
-        if (isAtBottom) {
-            document.documentElement.style.overflowY = 'hidden';
-            document.body.style.overflowY = 'hidden';
-        } else {
-            document.documentElement.style.overflowY = 'auto';
-            document.body.style.overflowY = 'auto';
-        }
+        // Remove hard bottom scroll clamp so page height equals content
+        isAtBottom = false;
+        document.documentElement.style.overflowY = 'auto';
+        document.body.style.overflowY = 'auto';
+        // Ensure no forced bottom padding is added by the browser
+        document.documentElement.style.paddingBottom = '0px';
+        document.body.style.paddingBottom = '0px';
     }
     
     // Throttle scroll events for better performance
@@ -211,14 +214,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Prevent iOS/macOS bounce at the bottom
     window.addEventListener('touchmove', requestTick, { passive: true });
     
-    // Initial sizing + scroll clamp
+    // Initial sizing
     function recalcDocumentHeight() {
         try {
-            // Use the most conservative bottom (max of .connect and deep non-fixed measurement)
-            const rect = connectSection ? connectSection.getBoundingClientRect() : null;
-            const connectBottom = rect ? Math.ceil(window.pageYOffset + rect.bottom) : 0;
-            const deepBottom = getDeepContentBottomPx();
-            const exactHeight = Math.max(connectBottom, deepBottom);
+            // Set min-heights based purely on deepest non-fixed content
+            const exactHeight = getDeepContentBottomPx();
             document.body.style.minHeight = exactHeight + 'px';
             document.documentElement.style.minHeight = exactHeight + 'px';
             // Debug logs
@@ -390,18 +390,30 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('scroll', () => { if (logoOverlayEl) positionOverlay(); }, { passive: true });
     }
     
-    // ===== CONNECT: Local time updater =====
-    (function updateLocalTime() {
-        const timeEl = document.getElementById('localTime');
-        if (!timeEl) return;
-        function fmt(d) {
+    // ===== CONNECT: GMT+7 current time (API + smooth auto-update) =====
+    (function updateGmt7Time() {
+        const el = document.getElementById('gmt7Time');
+        if (!el) return;
+        const fmt = (dateLike) => {
+            const d = new Date(dateLike);
             const hh = String(d.getHours()).padStart(2, '0');
             const mm = String(d.getMinutes()).padStart(2, '0');
             return `${hh}:${mm}`;
-        }
-        const now = new Date();
-        timeEl.textContent = fmt(now);
-        setInterval(() => { timeEl.textContent = fmt(new Date()); }, 60 * 1000);
+        };
+        // Fallback using client time shifted to GMT+7
+        const setFromOffset = () => {
+            const now = new Date();
+            const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+            const gmt7 = new Date(utc + 7 * 3600000);
+            el.textContent = fmt(gmt7);
+        };
+        // Try worldtimeapi once for accuracy, then tick locally
+        fetch('https://worldtimeapi.org/api/timezone/Asia/Bangkok', { cache: 'no-store' })
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(data => { if (data && data.datetime) el.textContent = fmt(data.datetime); else setFromOffset(); })
+            .catch(setFromOffset);
+        // Smooth auto update every second
+        setInterval(setFromOffset, 1000);
     })();
 
 });
