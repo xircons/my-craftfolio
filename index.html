@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="img/logo.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png?v=3">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png?v=3">
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png?v=3">
+    <link rel="preload" as="image" href="img/connect.png" fetchpriority="high"/>
     <title>Craftfolio — pppwtk</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -83,12 +86,76 @@
                 <div class="col">
                     <h2>languages</h2>
                     <ul>
-                        <li>Northern Thai dialect</li>
                         <li>English</li>
                         <li>Thai</li>
                     </ul>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- connect / contact -->
+    <section class="connect content-section" id="connect" aria-labelledby="contactTitle">
+        <div class="connect-container">
+            <div class="connect-grid">
+                <div class="info" aria-label="Contact information">
+                    <div class="info-group">
+                        <h4>Phone</h4>
+                        <p><a href="tel:+66000000000">+66 00 000 0000</a></p>
+                    </div>
+                    <div class="info-group">
+                        <h4>Email</h4>
+                        <p><a href="mailto:hello@example.com">hello@example.com</a></p>
+                    </div>
+                    <div class="info-group">
+                        <h4>Address</h4>
+                        <p>Chiang Mai, Thailand</p>
+                    </div>
+                    <div class="info-group two-col">
+                        <div>
+                            <h4>Opening Hours</h4>
+                            <p>Mon – Fri: 8:00 am – 7:00 pm<br>Saturday: 8:00 am – 5:00 pm</p>
+                        </div>
+                        <div>
+                            <h4>Local Time</h4>
+                            <p><span id="localTime">00:00</span> am</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form" aria-label="Contact form">
+                    <p class="lead">Do not hesitate to contact me to discuss a possible project or discover more about my work.</p>
+                    <form>
+                        <div class="field">
+                            <label for="name">Name</label>
+                            <input id="name" name="name" type="text" placeholder="John Doe" autocomplete="name">
+                        </div>
+                        <div class="field">
+                            <label for="email">Email</label>
+                            <input id="email" name="email" type="email" placeholder="hello@example.com" autocomplete="email">
+                        </div>
+                        <div class="field">
+                            <label for="company">I work at</label>
+                            <input id="company" name="company" type="text" placeholder="Company name" autocomplete="organization">
+                        </div>
+                        <div class="field">
+                            <label for="message">Details about the project</label>
+                            <textarea id="message" name="message" rows="4" placeholder="My project is about..."></textarea>
+                        </div>
+                        <div class="actions">
+                            <button type="submit">Send</button>
+                        </div>
+                    </form>
+
+                    <div class="social">
+                        <a href="#" aria-label="Instagram">Instagram</a>
+                        <a href="#" aria-label="LinkedIn">LinkedIn</a>
+                        <a href="#" aria-label="Behance">Behance</a>
+                    </div>
+                </div>
+            </div>
+
+            <img id="contactTitle" class="contact-title" src="img/connect.png" alt="" aria-hidden="true" loading="eager" fetchpriority="high" decoding="async">
         </div>
     </section>
 

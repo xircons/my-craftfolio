@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const heroLogo = document.querySelector('.hero .logo');
     const heroLogoLink = document.querySelector('.hero .logo-link');
     const worksSection = document.querySelector('.works-box');
+    const connectSection = document.querySelector('.connect');
     let aboutLabelEl = null;
     const rootFontSizePx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
 
@@ -41,6 +42,56 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // ===== SCROLL EFFECTS =====
+    let isAtBottom = false;
+    let lastTouchY = 0;
+
+    function getDeepContentBottomPx() {
+        // Brute-force: measure every element bottom, but IGNORE fixed-position overlays
+        // Fixed elements (e.g., preloader, overlays) move with the viewport and would
+        // incorrectly increase the computed bottom as you scroll.
+        let totalBottom = 0;
+        const all = document.querySelectorAll('*');
+        for (let i = 0; i < all.length; i += 1) {
+            const el = all[i];
+            // Skip known non-layout overlays fast
+            if (el.id === 'preloader' || el.classList.contains('layout-guide') || el.classList.contains('logo-bg-overlay')) {
+                continue;
+            }
+            const cs = getComputedStyle(el);
+            if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+            if (cs.position === 'fixed') continue; // ignore fixed layers
+            const rect = el.getBoundingClientRect();
+            const bottom = rect.bottom + window.pageYOffset;
+            if (bottom > totalBottom) totalBottom = bottom;
+        }
+        return Math.ceil(totalBottom);
+    }
+
+    function logScrollDebug(tag = 'SCROLL DEBUG') {
+        try {
+            const lastEl = document.querySelector('.connect');
+            const lastBottom = lastEl ? (lastEl.getBoundingClientRect().bottom + window.pageYOffset) : -1;
+            console.log('=== ' + tag + ' ===');
+            console.log('window.innerHeight:', window.innerHeight);
+            console.log('document.body.scrollHeight:', document.body.scrollHeight);
+            console.log('document.body.offsetHeight:', document.body.offsetHeight);
+            console.log('document.documentElement.scrollHeight:', document.documentElement.scrollHeight);
+            console.log('document.documentElement.clientHeight:', document.documentElement.clientHeight);
+            console.log('Last element bottom (.connect):', lastBottom);
+            console.log('Current scrollY:', window.scrollY);
+            console.log('Max possible scroll (body.scrollHeight - innerHeight):', document.body.scrollHeight - window.innerHeight);
+            // Computed styles snapshot
+            const csHtml = getComputedStyle(document.documentElement);
+            const csBody = getComputedStyle(document.body);
+            const csConnect = lastEl ? getComputedStyle(lastEl) : null;
+            console.log('computed html { h:', csHtml.height, 'mb:', csHtml.marginBottom, 'pb:', csHtml.paddingBottom, '}');
+            console.log('computed body { h:', csBody.height, 'mb:', csBody.marginBottom, 'pb:', csBody.paddingBottom, '}');
+            if (csConnect) console.log('computed .connect { h:', csConnect.height, 'mb:', csConnect.marginBottom, 'pb:', csConnect.paddingBottom, '}');
+        } catch (e) {
+            console.warn('[debug] failed to log', e);
+        }
+    }
+
     function handleScroll() {
         const scrollY = window.scrollY;
         const windowHeight = window.innerHeight;
@@ -101,6 +152,45 @@ document.addEventListener('DOMContentLoaded', function() {
                 hero.classList.remove('show-about');
             }
         }
+
+        // Ensure connect title image does not flash by forcing GPU compositing when near viewport
+        const connectTitle = document.getElementById('contactTitle');
+        if (connectTitle) {
+            const connectRect = connectTitle.getBoundingClientRect();
+            const nearViewport = connectRect.top < windowHeight * 1.2; // start prepping slightly before
+            if (nearViewport) {
+                // Hint: promote to its own layer to avoid flicker
+                connectTitle.style.willChange = 'transform, opacity';
+                connectTitle.style.transform = 'translateZ(0)';
+            }
+        }
+
+        // Hard-limit scroll to bottom of document to avoid overscrolling blank space
+        // Compute the maximum scroll position on each frame
+        // Prefer .connect bottom; fallback to brute-force total bottom
+        let contentBottomPx = (() => {
+            if (connectSection) {
+                const rect = connectSection.getBoundingClientRect();
+                return window.scrollY + rect.bottom;
+            }
+            return document.documentElement.scrollHeight;
+        })();
+        // Cross-check with deep measurement (excluding fixed) and take the larger
+        const deepBottom = getDeepContentBottomPx();
+        contentBottomPx = Math.max(contentBottomPx, deepBottom);
+        const maxScroll = Math.max(0, Math.floor(contentBottomPx - windowHeight));
+        isAtBottom = scrollY >= maxScroll;
+        if (scrollY > maxScroll) {
+            window.scrollTo({ top: maxScroll, behavior: 'auto' });
+        }
+        // Aggressive lock: if at bottom, stop further downward scroll by disabling overflow
+        if (isAtBottom) {
+            document.documentElement.style.overflowY = 'hidden';
+            document.body.style.overflowY = 'hidden';
+        } else {
+            document.documentElement.style.overflowY = 'auto';
+            document.body.style.overflowY = 'auto';
+        }
     }
     
     // Throttle scroll events for better performance
@@ -118,9 +208,78 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add scroll event listener with throttling
     window.addEventListener('scroll', requestTick, { passive: true });
+    // Prevent iOS/macOS bounce at the bottom
+    window.addEventListener('touchmove', requestTick, { passive: true });
     
-    // Initial call to set initial states
+    // Initial sizing + scroll clamp
+    function recalcDocumentHeight() {
+        try {
+            // Use the most conservative bottom (max of .connect and deep non-fixed measurement)
+            const rect = connectSection ? connectSection.getBoundingClientRect() : null;
+            const connectBottom = rect ? Math.ceil(window.pageYOffset + rect.bottom) : 0;
+            const deepBottom = getDeepContentBottomPx();
+            const exactHeight = Math.max(connectBottom, deepBottom);
+            document.body.style.minHeight = exactHeight + 'px';
+            document.documentElement.style.minHeight = exactHeight + 'px';
+            // Debug logs
+            console.debug('[scrollGuard] exactHeight', exactHeight,
+                'docHeight', document.documentElement.scrollHeight,
+                'winH', window.innerHeight);
+        } catch (e) {
+            console.warn('[scrollGuard] sizing error', e);
+        }
+    }
+
+    recalcDocumentHeight();
     handleScroll();
+
+    // Recalculate on resize and orientation change to keep bounds correct
+    window.addEventListener('resize', () => { recalcDocumentHeight(); requestTick(); });
+    window.addEventListener('orientationchange', () => { recalcDocumentHeight(); requestTick(); });
+
+    // After all resources load, re-measure in case images/fonts changed heights
+    window.addEventListener('load', () => { recalcDocumentHeight(); requestTick(); });
+
+    // Optional: enable debug zeroing with a key (Shift+D)
+    document.addEventListener('keydown', (e) => {
+        if (e.key.toLowerCase() === 'd' && e.shiftKey) {
+            document.body.classList.toggle('no-bottom-space-debug');
+            recalcDocumentHeight();
+            requestTick();
+        }
+        if (e.key.toLowerCase() === 'l' && e.shiftKey) {
+            logScrollDebug('SCROLL DEBUG (manual)');
+        }
+    });
+
+    // Aggressive: wheel/touch prevent when at bottom or at top
+    function atTop() { return window.scrollY <= 0; }
+    window.addEventListener('wheel', (e) => {
+        if ((isAtBottom && e.deltaY > 0) || (atTop() && e.deltaY < 0)) {
+            e.preventDefault();
+        }
+        // Re-enable scrolling immediately when user scrolls upward from bottom
+        if (e.deltaY < 0) {
+            document.documentElement.style.overflowY = 'auto';
+            document.body.style.overflowY = 'auto';
+        }
+    }, { passive: false });
+
+    window.addEventListener('touchstart', (e) => { if (e.touches && e.touches[0]) lastTouchY = e.touches[0].clientY; }, { passive: true });
+    window.addEventListener('touchmove', (e) => {
+        const currentY = (e.touches && e.touches[0]) ? e.touches[0].clientY : lastTouchY;
+        const deltaY = lastTouchY - currentY; // positive means scroll down
+        if ((isAtBottom && deltaY > 0) || (atTop() && deltaY < 0)) {
+            e.preventDefault();
+        }
+        if (deltaY < 0) { // user swipes down (scroll up)
+            document.documentElement.style.overflowY = 'auto';
+            document.body.style.overflowY = 'auto';
+        }
+    }, { passive: false });
+
+    // Initial comprehensive debug
+    logScrollDebug('SCROLL DEBUG (init)');
 
     // ===== HERO LOGO HOVER SWAP (keep exact position/size) =====
     if (heroLogo) {
@@ -231,4 +390,18 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('scroll', () => { if (logoOverlayEl) positionOverlay(); }, { passive: true });
     }
     
+    // ===== CONNECT: Local time updater =====
+    (function updateLocalTime() {
+        const timeEl = document.getElementById('localTime');
+        if (!timeEl) return;
+        function fmt(d) {
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mm = String(d.getMinutes()).padStart(2, '0');
+            return `${hh}:${mm}`;
+        }
+        const now = new Date();
+        timeEl.textContent = fmt(now);
+        setInterval(() => { timeEl.textContent = fmt(new Date()); }, 60 * 1000);
+    })();
+
 });

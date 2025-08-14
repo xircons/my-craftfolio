@@ -46,17 +46,21 @@ html {
     height: 100%;
     margin: 0;
     padding: 0;
+    overscroll-behavior-y: none; /* prevent rubber-band at document edges */
+    overflow-x: hidden;
 }
 
 body {
     font-family: var(--ff-sans);
     background-color: var(--color-bg);
     overflow-x: hidden;
+    overflow-y: auto;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     height: 100%;
     margin: 0;
     padding: 0;
+    overscroll-behavior-y: none; /* stop scroll chaining / bounce */
 }
 
 /* Skip link */
@@ -134,7 +138,7 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 100; /* Above content sections */
+    z-index: 50; /* Keep below higher sections like connect */
     margin: 0;
     padding: 0;
 }
@@ -154,6 +158,7 @@ body {
     max-width: 100%;
     height: auto;
     box-sizing: border-box;
+    z-index: 40; /* below about-label and content sections */
 }
 
 /* Sticky-like bottom-left replacement label (image) */
@@ -170,7 +175,7 @@ body {
     opacity: 0;
     transition: opacity 150ms ease; /* fade-in */
     pointer-events: none;
-    z-index: 9999;
+    z-index: 60; /* above .hero (50) but below sections like .connect (200) */
 }
 
 .about-label.visible { opacity: 1; }
@@ -264,7 +269,7 @@ body {
 .content-section {
     position: relative;
     height: auto; /* Let content determine natural height */
-    margin-top: 100vh;
+    margin-top: 100vh; /* default: maintain hero overlay spacing */
     background: transparent;
     z-index: 2;
     transform: translateY(3.125rem); /* 50px */
@@ -281,6 +286,10 @@ body {
     margin-bottom: 0;
     min-height: auto; /* Remove forced 100vh constraint */
 }
+
+/* Reduce spacing only between about (story) and connect to 50vh */
+.about-me.content-section { margin-top: 100vh; }
+.connect.content-section { margin-top: 10vh; }
 
 /* Works section styles */
 .works-box {
@@ -620,6 +629,13 @@ html {
 /* Do not force overflow on html/body to preserve scrolling */
 body { overflow-x: hidden; }
 
+/* Debug helper: zero out any bottom spacing inside connect to chase layout issues */
+body.no-bottom-space-debug .connect,
+body.no-bottom-space-debug .connect * {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
 /* Preloader Overlay (moved from inline) */
 #preloader, #preloader * { box-sizing: border-box; margin: 0; padding: 0; }
 #preloader {
@@ -668,3 +684,138 @@ body { overflow-x: hidden; }
 #preloader.logo-hidden .logo img { opacity: 0; }
 #preloader.curtains-open .curtain-top { transform: translateY(-100%); }
 #preloader.curtains-open .curtain-bottom { transform: translateY(100%); }
+
+/* Connect / Contact */
+.connect {
+    background: #202329;
+    color: #e5e6e8;
+    padding: 6rem 2rem 8rem 2rem;
+    position: relative;
+    z-index: 200; /* ensure above fixed hero craftfolio image */
+    min-height: calc(100vh - env(safe-area-inset-bottom, 0px)); /* fill to bottom on all devices */
+    box-sizing: border-box;
+}
+
+.connect .connect-container {
+    max-width: calc(100% - 6.25rem);
+    margin: 0 auto;
+    position: relative;
+}
+
+.connect .connect-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+}
+
+@media (min-width: 64rem) {
+    .connect .connect-grid {
+        grid-template-columns: repeat(var(--grid-cols), 1fr);
+        align-items: start;
+        gap: 6rem; /* row gap */
+        column-gap: var(--grid-gutter); /* column gap matches grid */
+    }
+    .connect .info { grid-column: 1 / 7; }
+    .connect .form {
+        grid-column: 8 / 13;
+        margin-left: calc(0.1 * var(--grid-gutter)); /* push further right */
+        margin-right: calc(-1.1 * var(--grid-gutter)); /* extend width to the right */
+    }
+}
+
+.connect .info h4 {
+    font-family: var(--ff-mono);
+    color: #aeb1b6;
+    font-weight: var(--fw-400);
+    margin-bottom: .5rem;
+    letter-spacing: -0.04rem;
+}
+
+.connect .info p, .connect .info a {
+    font-family: var(--ff-mono);
+    color: #e5e6e8;
+    text-decoration: none;
+}
+
+.connect .info .info-group { margin-bottom: 2rem; }
+.connect .info .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+
+.connect .form .lead {
+    font-size: 1.125rem;
+    color: #cfd2d6;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+}
+
+.connect form { width: 100%; }
+.connect .field { display: flex; flex-direction: column; margin-bottom: 1.25rem; }
+.connect label { font-family: var(--ff-mono); color: #aeb1b6; font-size: .9rem; margin-bottom: .5rem; }
+.connect input, .connect textarea {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #4a4f57;
+    color: #e5e6e8;
+    padding: .75rem 0;
+    font-size: 1rem;
+    outline: none;
+}
+.connect input::placeholder, .connect textarea::placeholder { color: #7e848d; }
+
+/* Disable resize for all textareas */
+textarea { resize: none; }
+
+.connect .actions { margin-top: 2rem; }
+.connect button {
+    width: 100%;
+    background: transparent;
+    border: 1px solid #4a4f57;
+    color: #e5e6e8;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    transition: background .3s ease, color .3s ease;
+}
+.connect button:hover { background: #2a2f36; }
+
+.connect .social { display: flex; gap: 1.5rem; margin-top: 1rem; }
+.connect .social a { color: #aeb1b6; text-decoration: none; font-family: var(--ff-mono); }
+.connect .social a:hover { color: #e5e6e8; }
+
+.contact-title {
+    position: absolute;
+    left: 0;
+    bottom: -2rem;
+    font-size: clamp(4rem, 16vw, 12rem);
+    font-weight: 800;
+    letter-spacing: -0.1rem;
+    color: #e5e6e8;
+    opacity: .08;
+    pointer-events: none;
+}
+
+/* Make connect.png sit in the same position as about.png */
+.connect .contact-title {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    padding-left: 3.625rem; /* 58px */
+    padding-bottom: 1.25rem; /* 20px */
+    width: 49.5%;
+    max-width: 100%;
+    height: auto;
+    display: block; /* avoid inline baseline shift flicker */
+    image-rendering: -webkit-optimize-contrast; /* crisper on some browsers */
+    backface-visibility: hidden; /* prevent brief compositing flicker */
+    opacity: 1; /* fully visible for image */
+    pointer-events: none;
+    z-index: 201; /* above connect content */
+}
+
+@media (min-width: var(--bp-lg)) {
+    /* Span columns 1–8 in a 12-col grid (8 cols + 7 gutters) */
+    .connect .contact-title {
+        width: calc(
+            7 * ((100% - (var(--grid-cols) - 1) * var(--grid-gutter)) / var(--grid-cols))
+            + 7 * var(--grid-gutter)
+        );
+    }
+}
