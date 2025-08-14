@@ -143,7 +143,7 @@ body {
     z-index: 50; /* Keep below higher sections like connect */
     margin: 0;
     padding: 0;
-    background-color: transparent; /* let root dark background show */
+    background-color: #fff; /* let root dark background show */
 }
 
 .hero .container {
@@ -178,7 +178,7 @@ body {
     opacity: 0;
     transition: opacity 150ms ease; /* fade-in */
     pointer-events: none;
-    z-index: 60; /* above .hero (50) but below sections like .connect (200) */
+    z-index: 160; /* above about section, below connect (200) */
 }
 
 .about-label.visible { opacity: 1; }
@@ -304,7 +304,7 @@ body {
     padding: var(--space-300) var(--space-200) var(--space-100) var(--space-200);
     position: relative; /* allow z-index */
     z-index: 200; /* above hero craftfolio image */
-    background-color: #ffffff; /* works section on white */
+    background-color: transparent;
 }
 
 .works-container {
@@ -471,6 +471,8 @@ body {
     align-items: flex-start; /* Changed from center to flex-start for better alignment */
     padding: 4rem 2rem; /* Increased padding for better breathing room */
     text-align: left; /* Changed from center to left for better readability */
+    position: relative; /* enable z-index */
+    z-index: 150; /* below connect (200), below about-label (160) */
 }
 
 .about-me .container {
